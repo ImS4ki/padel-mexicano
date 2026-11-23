@@ -1,0 +1,837 @@
+<title>Padel Mexicano</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#1D4E9E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one-column phone app. Sticky header, scrolling content, fixed bottom tab bar. Matches drawn as top-down padel courts. */
+:root{
+  --bg:#ECF0F6; --surface:#FFFFFF; --surface-2:#F4F6FA; --ink:#0F1B2D; --muted:#55657C; --line:#D5DDE8;
+  --court:#1D4E9E; --court-2:#17407F; --court-line:rgba(255,255,255,.5); --on-court:#FFFFFF; --on-court-muted:rgba(255,255,255,.75);
+  --ball:#DCEB4B; --ball-ink:#1C2400;
+  --men:#0B7A72; --men-bg:#DDF2EF; --women:#B0386F; --women-bg:#F8E1EC;
+  --ok:#16733A; --ok-bg:#E1F3E7; --warn:#9A5205; --warn-bg:#FCEFD9; --danger:#B42318; --danger-bg:#FDE6E3;
+  --sel:#F2B705;
+  --font-display:"Barlow Condensed","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1220; --surface:#121C2E; --surface-2:#18243A; --ink:#E6ECF5; --muted:#93A3BA; --line:#26344C;
+  --court:#24529F; --court-2:#1B4182; --court-line:rgba(255,255,255,.4); --on-court:#FFFFFF; --on-court-muted:rgba(255,255,255,.75);
+  --ball:#E1EF5C; --ball-ink:#1C2400;
+  --men:#4FD1C5; --men-bg:#123532; --women:#F48FB9; --women-bg:#3A1A2B;
+  --ok:#5BD68A; --ok-bg:#12301F; --warn:#F5B454; --warn-bg:#3A2A10; --danger:#F78B80; --danger-bg:#3D1715;
+  --sel:#F2C230; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0A1220; --surface:#121C2E; --surface-2:#18243A; --ink:#E6ECF5; --muted:#93A3BA; --line:#26344C;
+  --court:#24529F; --court-2:#1B4182; --court-line:rgba(255,255,255,.4); --on-court:#FFFFFF; --on-court-muted:rgba(255,255,255,.75);
+  --ball:#E1EF5C; --ball-ink:#1C2400;
+  --men:#4FD1C5; --men-bg:#123532; --women:#F48FB9; --women-bg:#3A1A2B;
+  --ok:#5BD68A; --ok-bg:#12301F; --warn:#F5B454; --warn-bg:#3A2A10; --danger:#F78B80; --danger-bg:#3D1715;
+  --sel:#F2C230; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--font-body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
+h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:.01em;line-height:1.1;margin:0;text-wrap:balance}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:720px;margin:0 auto}
+
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--court)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--court);color:var(--on-court)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:12px}
+.top h1{font-size:1.55rem;text-transform:uppercase;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top .sub{font-size:.8rem;color:var(--on-court-muted);font-variant-numeric:tabular-nums}
+.top .titles{min-width:0;flex:1}
+.ballmark{width:30px;height:30px;border-radius:50%;background:var(--ball);flex:none;position:relative;overflow:hidden}
+.ballmark::before,.ballmark::after{content:"";position:absolute;width:30px;height:30px;border:2px solid var(--court);border-radius:50%;top:0}
+.ballmark::before{left:-20px}.ballmark::after{left:20px}
+
+main{padding-block:16px calc(92px + env(safe-area-inset-bottom,0px))}
+main .wrap{display:flex;flex-direction:column;gap:16px}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabs .row{display:grid;grid-template-columns:repeat(4,1fr);max-width:720px;margin:0 auto}
+.tab{background:none;border:0;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:.75rem;font-weight:600}
+.tab svg{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--court)}
+:root[data-theme="dark"] .tab[aria-current="page"]{color:var(--ball)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tab[aria-current="page"]{color:var(--ball)}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h2{font-size:1.35rem;text-transform:uppercase}
+.panel h3{font-size:1.1rem;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.center{text-align:center;align-items:center}
+.row-between{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 14px;font-weight:600;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.primary{background:var(--court);border-color:var(--court);color:var(--on-court)}
+.btn.ball{background:var(--ball);border-color:var(--ball);color:var(--ball-ink)}
+.btn.danger{color:var(--danger)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{min-height:36px;padding:6px 10px;font-size:.85rem}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns .btn{flex:1 1 auto}
+.notice{border-radius:10px;padding:10px 12px;font-size:.88rem;background:var(--surface-2);border:1px solid var(--line)}
+.notice.warn{background:var(--warn-bg);border-color:transparent;color:var(--warn)}
+.notice.info{background:var(--men-bg);border-color:transparent}
+
+/* Round toolbar */
+.roundbar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.roundbar h2{font-size:2rem;text-transform:uppercase}
+.roundbar .count{font-family:var(--font-display);font-size:1.1rem;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* Match card = top-down court */
+.match{display:flex;flex-direction:column;gap:6px}
+.match-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-family:var(--font-display);font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-size:1rem}
+.court{position:relative;background:var(--court);color:var(--on-court);border-radius:var(--r);padding:14px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;
+  background-image:linear-gradient(var(--court-line),var(--court-line));background-size:2px 100%;background-repeat:no-repeat;background-position:center;border:0;width:100%;text-align:left}
+.court::before{content:"";position:absolute;inset:8px;border:2px solid var(--court-line);border-radius:8px;pointer-events:none}
+button.court{cursor:pointer}
+.team{display:flex;flex-direction:column;gap:6px;min-width:0;position:relative;z-index:1}
+.team.b{align-items:flex-end}
+.scorebox{position:relative;z-index:1;background:var(--ball);color:var(--ball-ink);border-radius:999px;padding:6px 12px;font-family:var(--font-display);font-weight:700;font-size:1.6rem;line-height:1;font-variant-numeric:tabular-nums;min-width:86px;text-align:center;white-space:nowrap}
+.scorebox.empty{background:var(--court-2);color:var(--on-court);font-size:1rem;padding:9px 12px;border:2px solid var(--court-line)}
+.scorebox .sep{opacity:.5;padding:0 4px}
+.scorebox.live{background:var(--court-2);color:var(--ball);border:2px solid var(--ball);font-size:1.35rem;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border-radius:14px}
+.scorebox.live small{font-family:var(--font-body);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--on-court)}
+.tpt{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;background:var(--ball);color:var(--ball-ink);border-radius:999px;padding:4px 14px;min-width:56px;text-align:center;font-variant-numeric:tabular-nums}
+.minus.tennis{grid-template-columns:auto 1fr}
+.win{font-weight:700}
+.pl{display:inline-flex;align-items:center;gap:6px;max-width:100%;background:rgba(255,255,255,.12);border:1.5px solid transparent;color:var(--on-court);border-radius:8px;padding:5px 8px;font-weight:600;font-size:.92rem}
+.pl .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.g{flex:none;display:inline-grid;place-items:center;width:18px;height:18px;border-radius:5px;font-size:.68rem;font-weight:700;font-family:var(--font-body)}
+.g.M{background:var(--men-bg);color:var(--men)}
+.g.F{background:var(--women-bg);color:var(--women)}
+button.pl{cursor:pointer;border-color:var(--court-line)}
+button.pl.sel{border-color:var(--sel);background:var(--sel);color:#1A1400}
+.flag{font-size:.8rem;font-weight:600;padding:3px 8px;border-radius:999px;display:inline-flex;gap:6px;align-items:center}
+.flag.ok{background:var(--ok-bg);color:var(--ok)}
+.flag.info{background:var(--men-bg);color:var(--men)}
+.flag.warn{background:var(--warn-bg);color:var(--warn)}
+.bench{display:flex;flex-wrap:wrap;gap:8px}
+.bench .pl{background:var(--surface-2);color:var(--ink);border-color:var(--line)}
+.bench button.pl.sel{background:var(--sel);color:#1A1400;border-color:var(--sel)}
+
+/* Standings */
+.tablewrap{overflow-x:auto;margin:0 -4px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+td.name,th.name{text-align:left;white-space:normal}
+td.name{font-weight:600}
+td.name .inner{display:flex;align-items:center;gap:8px}
+td.rank{font-family:var(--font-display);font-size:1.2rem;font-weight:700;text-align:center;width:32px}
+td.pts{font-family:var(--font-display);font-size:1.25rem;font-weight:700}
+tr.top3 td.rank{color:var(--court)}
+:root[data-theme="dark"] tr.top3 td.rank{color:var(--ball)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) tr.top3 td.rank{color:var(--ball)}}
+
+/* History */
+.hist-round{display:flex;flex-direction:column;gap:8px}
+.hist-line{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;text-align:left}
+.hist-line .t{font-size:.88rem;min-width:0}
+.hist-line .t.b{text-align:right}
+.hist-line .s{font-family:var(--font-display);font-weight:700;font-size:1.25rem;font-variant-numeric:tabular-nums}
+
+/* Setup */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.lbl{font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.input{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+textarea.input{min-height:120px;font-family:ui-monospace,Consolas,monospace;font-size:.8rem}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-2);flex-wrap:wrap}
+.seg button{border:0;background:none;padding:9px 12px;font-weight:600;min-height:42px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--court);color:var(--on-court)}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.stepper button{border:0;background:none;width:44px;height:44px;font-size:1.3rem;font-weight:600}
+.stepper output{min-width:44px;text-align:center;font-family:var(--font-display);font-weight:700;font-size:1.35rem;font-variant-numeric:tabular-nums}
+.setting{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-block:4px}
+.setting .txt{min-width:0;flex:1 1 180px}
+.setting .txt b{display:block}
+.setting .txt span{font-size:.82rem;color:var(--muted)}
+.plist{display:flex;flex-direction:column}
+.prow{display:flex;align-items:center;gap:8px;padding-block:8px;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow input{flex:1;min-width:0;border:1px solid transparent;background:none;border-radius:8px;padding:8px;font-weight:600}
+.prow input:focus{border-color:var(--line);background:var(--surface-2)}
+.prow.out input{color:var(--muted);text-decoration:line-through}
+.gbtn{border:0;width:36px;height:36px;border-radius:8px;font-weight:700;flex:none}
+.gbtn.M{background:var(--men-bg);color:var(--men)}
+.gbtn.F{background:var(--women-bg);color:var(--women)}
+.iconbtn{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;height:36px;padding:0 10px;font-size:.8rem;font-weight:600;flex:none}
+.iconbtn.on{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.addrow{display:flex;gap:8px;flex-wrap:wrap}
+.addrow .input{flex:1 1 140px}
+.counts{display:flex;gap:8px;flex-wrap:wrap}
+.counts span{font-size:.82rem;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+
+/* Sheet */
+.backdrop{position:fixed;inset:0;background:rgba(5,10,20,.55);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:18px 18px 0 0;max-height:92%;overflow-y:auto;
+  padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.sheet-inner{max-width:640px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:14px}
+.sheet h2{font-size:1.45rem;text-transform:uppercase}
+.pad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.side{border:0;border-radius:var(--r);background:var(--court);color:var(--on-court);padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:200px;justify-content:space-between;touch-action:manipulation;user-select:none}
+.side:active{background:var(--court-2)}
+.side .nm{font-weight:600;font-size:.92rem;text-align:center;line-height:1.3;word-break:break-word}
+.side .big{font-family:var(--font-display);font-weight:700;font-size:4.6rem;line-height:1;color:var(--ball);font-variant-numeric:tabular-nums}
+.side .hint{font-size:.72rem;color:var(--on-court-muted);text-transform:uppercase;letter-spacing:.06em}
+.minus{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.progress{font-family:var(--font-display);font-size:1.05rem;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+.direct{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.direct .input{text-align:center;font-family:var(--font-display);font-weight:700;font-size:1.4rem}
+.sheet-msg{min-height:1.2em;font-size:.88rem;color:var(--warn);margin:0}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.9rem;max-width:calc(100% - 32px)}
+.example{display:flex;gap:10px;align-items:flex-start}
+@media (prefers-reduced-motion: no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+
+<header class="top"><div class="wrap"><div class="ballmark" aria-hidden="true"></div><div class="titles"><h1 id="title">Padel Mexicano</h1><div class="sub" id="subtitle"></div></div></div></header>
+<main><div class="wrap" id="view"></div></main>
+<nav class="tabs" aria-label="Sections"><div class="row">
+  <button class="tab" data-action="tab" data-tab="round"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 12h16M12 3v4M12 17v4"/></svg>Round</button>
+  <button class="tab" data-action="tab" data-tab="standings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 20V10M12 20V4M18 20v-7"/></svg>Standings</button>
+  <button class="tab" data-action="tab" data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>History</button>
+  <button class="tab" data-action="tab" data-tab="setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg>Setup</button>
+</div></nav>
+<div id="sheet" hidden></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/*CORE-START*/
+var DEFAULTS = {scoreType:'points', pointsPerMatch:21, scoring:'fixed', tennisFormat:'set', gamesPerMatch:6, deuce:'golden',
+  courts:3, partnerRule:'mixed', maxWinGap:1, sitOutPoints:'half', firstRound:'random'};
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var x=a[i]; a[i]=a[j]; a[j]=x; } return a; }
+function scored(m){ return typeof m.sa==='number' && typeof m.sb==='number' && isFinite(m.sa) && isFinite(m.sb); }
+/* A match result is points (points mode) or games won (tennis mode). */
+function matchTarget(s){ return s.scoreType === 'tennis' ? +s.gamesPerMatch : +s.pointsPerMatch; }
+
+/* Tennis scoring. d = {sa, sb (games), pa, pb (points in current game), tb (tiebreak)} */
+function tennisFinished(ga, gb, s){
+  var N = +s.gamesPerMatch;
+  if(s.tennisFormat === 'total') return ga + gb >= N;
+  var hi = Math.max(ga, gb), lo = Math.min(ga, gb);
+  return (hi >= N && hi - lo >= 2) || (hi === N + 1 && lo === N);
+}
+function tennisPoint(d, side, s){
+  if(tennisFinished(d.sa, d.sb, s)) return false;
+  var me = 'p' + side, ot = 'p' + (side === 'a' ? 'b' : 'a'), won;
+  d[me]++;
+  if(d.tb){ won = d[me] >= 7 && d[me] - d[ot] >= 2; }
+  else {
+    if(s.deuce !== 'golden' && d[me] >= 3 && d[me] === d[ot]){ d.pa = 3; d.pb = 3; }
+    won = d[me] >= 4 && (s.deuce === 'golden' || d[me] - d[ot] >= 2);
+  }
+  if(won){
+    d['s' + side]++; d.pa = 0; d.pb = 0; d.tb = false;
+    if(s.tennisFormat === 'set' && d.sa === +s.gamesPerMatch && d.sb === +s.gamesPerMatch) d.tb = true;
+  }
+  return true;
+}
+function tennisLabels(d, s){
+  if(d.tb) return [String(d.pa), String(d.pb), 'Tiebreak'];
+  var L = ['0','15','30','40'];
+  if(d.pa >= 3 && d.pb >= 3){
+    if(d.pa === d.pb) return ['40', '40', s.deuce === 'golden' ? 'Golden point' : 'Deuce'];
+    return d.pa > d.pb ? ['AD', '40', 'Advantage'] : ['40', 'AD', 'Advantage'];
+  }
+  return [L[d.pa], L[d.pb], ''];
+}
+
+/* Player stats from finished rounds whose number is below `beforeRound`. */
+function computeStats(t, beforeRound){
+  if(beforeRound==null) beforeRound = Infinity;
+  var st = {}, N = matchTarget(t.settings);
+  t.players.forEach(function(p){ st[p.id] = {id:p.id, points:0, wins:0, draws:0, losses:0, played:0, sitOuts:0, pf:0, pa:0, partners:{}, opps:{}}; });
+  t.rounds.forEach(function(r){
+    if(!r.done || r.number >= beforeRound) return;
+    var tot = 0, cnt = 0;
+    r.matches.forEach(function(m){
+      if(!scored(m)) return;
+      [[m.a, m.sa, m.sb, m.b], [m.b, m.sb, m.sa, m.a]].forEach(function(side){
+        var team = side[0], f = side[1], ag = side[2], opp = side[3];
+        team.forEach(function(pid){
+          var s = st[pid]; if(!s) return;
+          s.points += f; s.pf += f; s.pa += ag; s.played++;
+          if(f > ag) s.wins++; else if(f < ag) s.losses++; else s.draws++;
+          tot += f; cnt++;
+          team.forEach(function(q){ if(q !== pid) s.partners[q] = (s.partners[q]||0) + 1; });
+          opp.forEach(function(q){ s.opps[q] = (s.opps[q]||0) + 1; });
+        });
+      });
+    });
+    var sv = t.settings.sitOutPoints === 'half' ? N/2 : t.settings.sitOutPoints === 'avg' ? (cnt ? tot/cnt : 0) : 0;
+    sv = Math.round(sv*10)/10;
+    r.bench.forEach(function(pid){ var s = st[pid]; if(!s) return; s.sitOuts++; s.points += sv; });
+  });
+  return st;
+}
+function cmpStanding(a, b){ return (b.points - a.points) || (b.wins - a.wins) || ((b.pf - b.pa) - (a.pf - a.pa)); }
+/* Stable sort: pass a pre-shuffled list to break ties randomly. */
+function rankPlayers(list, st){ return list.slice().sort(function(x, y){ return cmpStanding(st[x.id], st[y.id]); }); }
+function teamWins(team, st){ return st[team[0].id].wins + st[team[1].id].wins; }
+
+/* Cost of one match line-up. Lower is better. */
+function pairingCost(A, B, st, set, base){
+  var c = base;
+  [A, B].forEach(function(T){ c += 6 * (st[T[0].id].partners[T[1].id] || 0); });
+  A.forEach(function(x){ B.forEach(function(y){ c += 1 * (st[x.id].opps[y.id] || 0); }); });
+  if(set.partnerRule === 'mixed'){
+    var sameA = A[0].gender === A[1].gender, sameB = B[0].gender === B[1].gender;
+    c += (sameA ? 20 : 0) + (sameB ? 20 : 0);
+    var mA = (A[0].gender==='M') + (A[1].gender==='M'), mB = (B[0].gender==='M') + (B[1].gender==='M');
+    c += 8 * Math.abs(mA - mB);
+    if(sameA || sameB){
+      var gap = Math.abs(teamWins(A, st) - teamWins(B, st));
+      c += gap > set.maxWinGap ? 400 + 100 * (gap - set.maxWinGap) : gap * 2;
+    }
+  }
+  return c;
+}
+/* Mexicano within a court: ranks 1+4 vs 2+3 is the standard split. */
+var SPLITS = [[[0,3],[1,2],0], [[0,2],[1,3],2], [[0,1],[2,3],5]];
+function bestCourt(group, st, set, rankIdx){
+  var g = group.slice().sort(function(x, y){ return rankIdx.get(x.id) - rankIdx.get(y.id); });
+  var best = null;
+  SPLITS.forEach(function(sp){
+    var A = [g[sp[0][0]], g[sp[0][1]]], B = [g[sp[1][0]], g[sp[1][1]]];
+    var c = pairingCost(A, B, st, set, sp[2]);
+    if(!best || c < best.cost) best = {cost:c, a:A, b:B};
+  });
+  return best;
+}
+/* Start from ranked groups of four, then swap players between nearby courts while it lowers the total cost. */
+function arrange(order, st, set, dispW){
+  var C = order.length / 4, rankIdx = new Map();
+  order.forEach(function(p, i){ rankIdx.set(p.id, i); });
+  var nat = function(id){ return Math.floor(rankIdx.get(id) / 4); };
+  var disp = function(g, c){ var s = 0; g.forEach(function(p){ s += Math.abs(nat(p.id) - c); }); return s * dispW; };
+  var courts = [], cc = [];
+  for(var c = 0; c < C; c++){ courts.push(order.slice(c*4, c*4+4)); cc.push(bestCourt(courts[c], st, set, rankIdx).cost); }
+  var improved = true, guard = 0;
+  while(improved && guard++ < 100){
+    improved = false;
+    for(var a = 0; a < C; a++) for(var d = a+1; d < C && d <= a+2; d++) for(var i = 0; i < 4; i++) for(var j = 0; j < 4; j++){
+      var before = cc[a] + cc[d] + disp(courts[a], a) + disp(courts[d], d);
+      var ga = courts[a].slice(), gd = courts[d].slice(), tmp = ga[i]; ga[i] = gd[j]; gd[j] = tmp;
+      var na = bestCourt(ga, st, set, rankIdx).cost, nd = bestCourt(gd, st, set, rankIdx).cost;
+      if(na + nd + disp(ga, a) + disp(gd, d) < before - 1e-9){ courts[a] = ga; courts[d] = gd; cc[a] = na; cc[d] = nd; improved = true; }
+    }
+  }
+  var res = courts.map(function(g){ return bestCourt(g, st, set, rankIdx); });
+  var total = 0; res.forEach(function(r, k){ total += r.cost + disp(courts[k], k); });
+  return {courts:res, total:total};
+}
+/* Who sits out: fewest sit-outs first, not the same people twice in a row, and from the larger gender group when mixing. */
+function chooseBench(active, k, st, prevBench, mixed){
+  var bench = [], pool = shuffle(active.slice()), prev = new Set(prevBench);
+  var key = function(p){ return st[p.id].sitOuts * 2 + (prev.has(p.id) ? 1 : 0); };
+  for(var i = 0; i < k; i++){
+    var min = Infinity; pool.forEach(function(p){ min = Math.min(min, key(p)); });
+    var cands = pool.filter(function(p){ return key(p) === min; });
+    if(mixed){
+      var m = pool.filter(function(p){ return p.gender === 'M'; }).length, f = pool.length - m;
+      var major = m > f ? 'M' : f > m ? 'F' : null;
+      if(major){ var c2 = cands.filter(function(p){ return p.gender === major; }); if(c2.length) cands = c2; }
+    }
+    var pick = cands[0]; bench.push(pick); pool = pool.filter(function(p){ return p !== pick; });
+  }
+  return bench;
+}
+function generateRound(t){
+  var set = t.settings, mixed = set.partnerRule === 'mixed';
+  var st = computeStats(t);
+  var active = t.players.filter(function(p){ return p.active; });
+  var C = Math.min(Math.max(1, set.courts|0), Math.floor(active.length / 4));
+  if(C < 1) return {error:'You need at least 4 players marked as playing.'};
+  var done = t.rounds.filter(function(r){ return r.done; });
+  var prev = done.length ? done[done.length-1].bench : [];
+  var first = done.length === 0, listed = first && set.firstRound === 'listed';
+  var best = null, tries = listed ? 4 : first ? 40 : 12;
+  for(var k = 0; k < tries; k++){
+    var bench = chooseBench(active, active.length - C*4, st, prev, mixed);
+    var bset = new Set(bench.map(function(p){ return p.id; }));
+    var playing = active.filter(function(p){ return !bset.has(p.id); });
+    var order = listed ? playing.slice() : first ? shuffle(playing.slice()) : rankPlayers(shuffle(playing.slice()), st);
+    var res = arrange(order, st, set, first && !listed ? 0.5 : 6);
+    if(!best || res.total < best.res.total) best = {res:res, bench:bench};
+  }
+  var num = t.rounds.length ? t.rounds[t.rounds.length-1].number + 1 : 1;
+  return {round:{number:num, done:false, bench:best.bench.map(function(p){ return p.id; }),
+    matches:best.res.courts.map(function(c, i){ return {id:uid(), court:i+1, a:c.a.map(function(p){return p.id;}), b:c.b.map(function(p){return p.id;}), sa:null, sb:null}; })}};
+}
+/* Describe a match against the gender rule. st = standings before the round. */
+function matchCheck(t, st, m){
+  if(t.settings.partnerRule !== 'mixed') return null;
+  var byId = {}; t.players.forEach(function(p){ byId[p.id] = p; });
+  var A = m.a.map(function(id){ return byId[id]; }), B = m.b.map(function(id){ return byId[id]; });
+  if(A.some(function(p){return !p;}) || B.some(function(p){return !p;})) return null;
+  var kind = function(T){ return T[0].gender !== T[1].gender ? 'Mixed' : T[0].gender === 'M' ? "Men's pair" : "Women's pair"; };
+  var ka = kind(A), kb = kind(B);
+  if(ka === 'Mixed' && kb === 'Mixed') return {level:'ok', text:'Mixed vs mixed'};
+  var wa = teamWins(A, st), wb = teamWins(B, st), gap = Math.abs(wa - wb), max = t.settings.maxWinGap;
+  var label = ka + ' vs ' + kb.toLowerCase();
+  if(gap <= max) return {level:'info', text:label + ' · team wins ' + wa + '–' + wb};
+  return {level:'warn', text:label + ' · team wins ' + wa + '–' + wb + ', gap ' + gap + ' is over ' + max};
+}
+/*CORE-END*/
+
+(function(){
+'use strict';
+var KEY = 'padel-mexicano-v1';
+var EXAMPLE = [['Andi','M'],['Budi','M'],['Dimas','M'],['Rafael','M'],['Kevin','M'],['Arif','M'],['Yoga','M'],['Sari','F'],['Maya','F'],['Dewi','F'],['Nadia','F'],['Putri','F']];
+var S = null;
+var ui = {tab:'round', edit:false, sel:null, sheet:null, score:null, confirm:null};
+var view = document.getElementById('view'), sheetEl = document.getElementById('sheet');
+
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function fmt(n){ return Number.isInteger(n) ? String(n) : n.toFixed(1); }
+function load(){ try{ var r = localStorage.getItem(KEY); if(r){ var d = JSON.parse(r); if(d && typeof d === 'object') return d; } }catch(e){} return null; }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function makeTournament(name, players, settings){
+  return {id:uid(), name:name || 'Mexicano', created:Date.now(), settings:Object.assign({}, DEFAULTS, settings || {}),
+    players:players.map(function(p){ return {id:uid(), name:p[0], gender:p[1], active:true}; }), rounds:[]};
+}
+function T(){ return S.t; }
+function openRound(){ var t = T(); if(!t || !t.rounds.length) return null; var r = t.rounds[t.rounds.length-1]; return r.done ? null : r; }
+function byId(){ var m = {}; T().players.forEach(function(p){ m[p.id] = p; }); return m; }
+function gl(g){ return g === 'M' ? 'M' : 'W'; }
+var toastTimer;
+function toast(msg){ var el = document.getElementById('toast'); el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(function(){ el.hidden = true; }, 2200); }
+
+function chip(p, opts){
+  opts = opts || {};
+  var inner = '<span class="g ' + p.gender + '" aria-label="' + (p.gender==='M'?'man':'woman') + '">' + gl(p.gender) + '</span><span class="nm">' + esc(p.name) + '</span>';
+  if(opts.pick) return '<button class="pl' + (ui.sel === p.id ? ' sel' : '') + '" data-action="pick" data-id="' + p.id + '">' + inner + '</button>';
+  return '<span class="pl">' + inner + '</span>';
+}
+
+/* ---------- Views ---------- */
+function render(){
+  var t = T();
+  document.getElementById('title').textContent = t ? t.name : 'Padel Mexicano';
+  var sub = '';
+  if(t){
+    var act = t.players.filter(function(p){ return p.active; }).length;
+    var r = openRound(), done = t.rounds.filter(function(x){ return x.done; }).length;
+    sub = (r ? 'Round ' + r.number + ' in play' : done ? done + ' round' + (done>1?'s':'') + ' played' : 'Not started') + ' · ' + act + ' players · ' + formatLabel(t.settings);
+  }
+  document.getElementById('subtitle').textContent = sub;
+  document.querySelectorAll('.tab').forEach(function(b){ if(b.dataset.tab === ui.tab) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  var html = !t ? viewEmpty() : ui.tab === 'round' ? viewRound() : ui.tab === 'standings' ? viewStandings() : ui.tab === 'history' ? viewHistory() : viewSetup();
+  view.innerHTML = html;
+  renderSheet();
+}
+function viewEmpty(){
+  return '<section class="panel center"><h2>No event yet</h2><p class="muted">Create an event, add players with their gender, and the app builds Mexicano rounds for you.</p>' +
+    '<button class="btn primary" data-action="new-event">New event</button></section>';
+}
+function exampleNote(){
+  return S.example ? '<div class="notice info example"><div style="flex:1">This is an example event with made-up players. Start your own from Setup &rsaquo; New event.</div><button class="btn sm" data-action="dismiss-example">OK</button></div>' : '';
+}
+function viewRound(){
+  var t = T(), r = openRound(), out = exampleNote();
+  if(!r){
+    var n = t.rounds.length ? t.rounds[t.rounds.length-1].number + 1 : 1;
+    var act = t.players.filter(function(p){ return p.active; }).length;
+    var courts = Math.min(t.settings.courts, Math.floor(act/4));
+    out += '<section class="panel center"><h2>Round ' + n + '</h2>' +
+      '<p class="muted">' + (t.rounds.length ? 'Round ' + (n-1) + ' is finished and the standings are updated. Players are re-ranked for the next round.' : 'Check your players and format in Setup, then create the first round.') + '</p>' +
+      (act >= 4 ? '<p class="small muted">' + act + ' playing · ' + courts + ' court' + (courts>1?'s':'') + ' · ' + (act - courts*4) + ' sitting out</p>' : '') +
+      '<button class="btn primary block" data-action="generate"' + (act < 4 ? ' disabled' : '') + '>Create round ' + n + '</button>' +
+      (act < 4 ? '<p class="small muted">You need at least 4 players marked as playing.</p>' : '') + '</section>';
+    return out;
+  }
+  var st = computeStats(t, r.number), P = byId();
+  var nScored = r.matches.filter(scored).length;
+  out += '<div class="roundbar"><div><h2>Round ' + r.number + '</h2><div class="count">' + nScored + ' of ' + r.matches.length + ' courts scored</div></div>' +
+    '<div class="btns">' + (ui.edit ? '<button class="btn ball" data-action="edit-off">Done editing</button>' : '<button class="btn" data-action="edit-on">Edit pairs</button>') + '</div></div>';
+  if(ui.edit) out += '<div class="notice">Tap a player, then tap another player to swap them. This works across courts and with players sitting out. ' + (ui.sel ? '<b>' + esc(P[ui.sel].name) + '</b> selected.' : '') + '</div>';
+  r.matches.forEach(function(m){
+    var chk = matchCheck(t, st, m), has = scored(m);
+    var team = function(ids, cls){ return '<div class="team ' + cls + '">' + ids.map(function(id){ return chip(P[id], {pick:ui.edit}); }).join('') + '</div>'; };
+    var lv = m.live, isLive = !has && lv && (lv.sa || lv.sb || lv.pa || lv.pb);
+    var score = has ? '<div class="scorebox"><span class="' + (m.sa > m.sb ? 'win' : '') + '">' + m.sa + '</span><span class="sep">–</span><span>' + m.sb + '</span></div>'
+      : isLive ? '<div class="scorebox live"><small>Live</small>' + lv.sa + '<span class="sep">–</span>' + lv.sb +
+          (isTennis() && (lv.pa || lv.pb) ? '<small>' + tennisLabels(lv, t.settings).slice(0, 2).join('–') + '</small>' : '') + '</div>'
+      : '<div class="scorebox empty">Score</div>';
+    var body = team(m.a, 'a') + score + team(m.b, 'b');
+    out += '<article class="match"><div class="match-head"><span>Court ' + m.court + '</span>' + (chk ? '<span class="flag ' + chk.level + '">' + esc(chk.text) + '</span>' : '') + '</div>' +
+      (ui.edit ? '<div class="court">' + body + '</div>' : '<button class="court" data-action="score" data-m="' + m.id + '" aria-label="Enter score for court ' + m.court + '">' + body + '</button>') + '</article>';
+  });
+  if(r.bench.length){
+    out += '<section class="panel"><h3>Sitting out</h3><div class="bench">' + r.bench.map(function(id){ return chip(P[id], {pick:ui.edit}); }).join('') + '</div>' +
+      '<p class="small muted">Sit-out points: ' + sitOutLabel(t) + '.</p></section>';
+  }
+  var all = nScored === r.matches.length;
+  out += '<div class="btns"><button class="btn primary block" data-action="finish"' + (all ? '' : ' disabled') + '>Finish round ' + r.number + ' &amp; create next</button></div>';
+  out += '<div class="btns"><button class="btn" data-action="end-round"' + (all ? '' : ' disabled') + '>Finish without next round</button><button class="btn" data-action="reshuffle">Re-draw round</button><button class="btn danger" data-action="delete-round">Delete round</button></div>';
+  return out;
+}
+function sitOutLabel(t){ var s = t.settings.sitOutPoints; return s === 'half' ? 'half of a match (' + fmt(matchTarget(t.settings)/2) + ')' : s === 'avg' ? 'average ' + unit() + ' scored that round' : 'none'; }
+function isTennis(){ return T().settings.scoreType === 'tennis'; }
+function unit(){ return isTennis() ? 'games' : 'points'; }
+function formatLabel(s){
+  if(s.scoreType !== 'tennis') return s.pointsPerMatch + ' pts';
+  return (s.tennisFormat === 'total' ? s.gamesPerMatch + ' games' : 'Set to ' + s.gamesPerMatch) + (s.deuce === 'golden' ? ' · golden pt' : '');
+}
+function standingsRows(){
+  var t = T(), st = computeStats(t), P = byId();
+  var list = t.players.filter(function(p){ return p.active || st[p.id].played || st[p.id].sitOuts; }).map(function(p){ return st[p.id]; });
+  list.sort(function(a, b){ return cmpStanding(a, b) || P[a.id].name.localeCompare(P[b.id].name); });
+  var rank = 0, prev = null;
+  list.forEach(function(s, i){ if(!prev || cmpStanding(prev, s) !== 0) rank = i + 1; s.rank = rank; prev = s; });
+  return list;
+}
+function viewStandings(){
+  var t = T(), rows = standingsRows(), P = byId();
+  var done = t.rounds.filter(function(r){ return r.done; }).length;
+  var out = '<section class="panel"><div class="row-between"><h2>Standings</h2><button class="btn sm" data-action="copy-standings">Copy text</button></div>' +
+    '<p class="small muted">After ' + done + ' finished round' + (done === 1 ? '' : 's') + '. Ranked by ' + unit() + ', then matches won, then ' + (isTennis() ? 'game' : 'point') + ' difference.</p>' +
+    '<div class="tablewrap"><table><thead><tr><th></th><th class="name">Player</th><th>' + (isTennis() ? 'Games' : 'Pts') + '</th><th>W-D-L</th><th>+/-</th><th>Out</th></tr></thead><tbody>';
+  rows.forEach(function(s){
+    var p = P[s.id];
+    out += '<tr class="' + (s.rank <= 3 ? 'top3' : '') + '"><td class="rank">' + s.rank + '</td><td class="name"><div class="inner"><span class="g ' + p.gender + '">' + gl(p.gender) + '</span>' + esc(p.name) + '</div></td>' +
+      '<td class="pts">' + fmt(s.points) + '</td><td>' + s.wins + '-' + s.draws + '-' + s.losses + '</td><td>' + (s.pf - s.pa > 0 ? '+' : '') + (s.pf - s.pa) + '</td><td>' + s.sitOuts + '</td></tr>';
+  });
+  out += '</tbody></table></div><p class="small muted">Out = rounds sat out. ' + (isTennis() ? 'Games' : 'Pts') + ' includes sit-out ' + unit() + ' (' + sitOutLabel(t) + ').</p></section>';
+  return exampleNote() + out;
+}
+function viewHistory(){
+  var t = T(), P = byId();
+  if(!t.rounds.length) return '<section class="panel center"><h2>No rounds yet</h2><p class="muted">Finished rounds appear here. Tap a result to correct it.</p></section>';
+  var out = '';
+  t.rounds.slice().reverse().forEach(function(r){
+    out += '<section class="panel hist-round"><div class="row-between"><h2>Round ' + r.number + '</h2><span class="small muted">' + (r.done ? 'Finished' : 'In play') + '</span></div>';
+    r.matches.forEach(function(m){
+      var names = function(ids){ return ids.map(function(id){ return P[id] ? esc(P[id].name) : '?'; }).join(' &amp; '); };
+      out += '<button class="hist-line" data-action="score" data-m="' + m.id + '" data-r="' + r.number + '"><span class="t">' + names(m.a) + '</span><span class="s">' + (scored(m) ? m.sa + '–' + m.sb : '–') + '</span><span class="t b">' + names(m.b) + '</span></button>';
+    });
+    if(r.bench.length) out += '<p class="small muted">Sat out: ' + r.bench.map(function(id){ return P[id] ? esc(P[id].name) : '?'; }).join(', ') + '</p>';
+    out += '</section>';
+  });
+  return out;
+}
+function seg(setting, opts){
+  var v = T().settings[setting];
+  return '<div class="seg" role="group">' + opts.map(function(o){ return '<button data-action="set" data-setting="' + setting + '" data-value="' + o[0] + '" aria-pressed="' + (String(v) === String(o[0])) + '">' + o[1] + '</button>'; }).join('') + '</div>';
+}
+function stepper(setting, min, max){
+  var v = T().settings[setting];
+  return '<div class="stepper"><button data-action="step" data-setting="' + setting + '" data-d="-1" data-min="' + min + '" data-max="' + max + '" aria-label="Decrease">−</button><output>' + v + '</output><button data-action="step" data-setting="' + setting + '" data-d="1" data-min="' + min + '" data-max="' + max + '" aria-label="Increase">+</button></div>';
+}
+function viewSetup(){
+  var t = T(), s = t.settings, st = computeStats(t);
+  var used = {}; t.rounds.forEach(function(r){ r.matches.forEach(function(m){ m.a.concat(m.b).forEach(function(id){ used[id] = 1; }); }); r.bench.forEach(function(id){ used[id] = 1; }); });
+  var act = t.players.filter(function(p){ return p.active; });
+  var men = act.filter(function(p){ return p.gender === 'M'; }).length, women = act.length - men;
+  var out = exampleNote();
+  out += '<section class="panel"><h2>Players</h2><div class="counts"><span>' + act.length + ' playing</span><span>' + men + ' men</span><span>' + women + ' women</span>' +
+    (t.players.length > act.length ? '<span>' + (t.players.length - act.length) + ' out</span>' : '') + '</div><div class="plist">';
+  t.players.forEach(function(p){
+    out += '<div class="prow' + (p.active ? '' : ' out') + '"><button class="gbtn ' + p.gender + '" data-action="gender" data-id="' + p.id + '" aria-label="Gender: ' + (p.gender==='M'?'man':'woman') + '. Tap to change">' + gl(p.gender) + '</button>' +
+      '<input id="name-' + p.id + '" value="' + esc(p.name) + '" data-change="rename" data-id="' + p.id + '" aria-label="Player name">' +
+      '<button class="iconbtn' + (p.active ? ' on' : '') + '" data-action="toggle-active" data-id="' + p.id + '">' + (p.active ? 'Playing' : 'Out') + '</button>' +
+      (used[p.id] ? '' : '<button class="iconbtn" data-action="remove" data-id="' + p.id + '" aria-label="Remove ' + esc(p.name) + '">✕</button>') + '</div>';
+  });
+  out += '</div><div class="addrow"><input class="input" id="newname" placeholder="Player name" autocomplete="off"><button class="btn" data-action="add" data-g="M">+ Man</button><button class="btn" data-action="add" data-g="F">+ Woman</button></div>' +
+    '<button class="btn sm" data-action="paste-list">Paste a list of names</button>' +
+    '<p class="small muted">Mark players as Out to skip them in the next rounds (late arrivals or early leavers). Players who already played stay in the standings.</p></section>';
+
+  var anyScored = t.rounds.some(function(r){ return r.matches.some(scored); });
+  out += '<section class="panel"><h2>Format</h2>' +
+    '<div class="setting"><div class="txt"><b>Scoring</b><span>' + (s.scoreType === 'tennis' ? 'Tennis count (0-15-30-40). Standings add up games won.' : 'Count points, for example to 21. Standings add up points.') + '</span></div>' + seg('scoreType', [['points','Points'],['tennis','Tennis']]) + '</div>' +
+    (anyScored ? '<p class="notice small">Results already entered keep their numbers. Switching between points and tennis in the middle of an event mixes points and games in the standings.</p>' : '');
+  if(s.scoreType === 'tennis'){
+    out += '<div class="setting"><div class="txt"><b>Match length</b><span>' + (s.tennisFormat === 'total' ? 'Play exactly ' + s.gamesPerMatch + ' games. Every court finishes at the same time.' : 'First to ' + s.gamesPerMatch + ' games with a 2-game lead. Tiebreak at ' + s.gamesPerMatch + '–' + s.gamesPerMatch + '.') + '</span></div>' + seg('tennisFormat', [['set','Set'],['total','Fixed games']]) + '</div>' +
+      '<div class="setting"><div class="txt"><b>Games</b><span>' + (s.tennisFormat === 'total' ? 'Games played per match.' : 'Games needed to win the set.') + '</span></div>' + stepper('gamesPerMatch', 1, 20) + '</div>' +
+      '<div class="setting"><div class="txt"><b>At 40–40</b><span>' + (s.deuce === 'golden' ? 'One deciding point wins the game.' : 'A team must win two points in a row.') + '</span></div>' + seg('deuce', [['golden','Golden point'],['advantage','Advantage']]) + '</div>';
+  } else {
+    out += '<div class="setting"><div class="txt"><b>Points per match</b><span>' + (s.scoring === 'fixed' ? 'Total points played on each court, for example 21.' : 'Target score, for example first to 21.') + '</span></div>' + stepper('pointsPerMatch', 4, 64) + '</div>' +
+      '<div class="setting"><div class="txt"><b>Point rule</b><span>' + (s.scoring === 'fixed' ? 'Both scores add up to ' + s.pointsPerMatch + ', e.g. 12–9.' : 'Enter any score, for races or timed matches.') + '</span></div>' + seg('scoring', [['fixed','Fixed total'],['free','Free']]) + '</div>';
+  }
+  out +=
+    '<div class="setting"><div class="txt"><b>Courts</b><span>Up to ' + Math.max(1, Math.floor(act.length/4)) + ' with ' + act.length + ' players.</span></div>' + stepper('courts', 1, 20) + '</div>' +
+    '<div class="setting"><div class="txt"><b>Pairs</b><span>' + (s.partnerRule === 'mixed' ? 'Man + woman where possible. Same-gender pairs only face a pair with similar team wins.' : 'Gender is ignored when pairing.') + '</span></div>' + seg('partnerRule', [['mixed','Prefer mixed'],['any','Any']]) + '</div>' +
+    (s.partnerRule === 'mixed' ? '<div class="setting"><div class="txt"><b>Max win gap</b><span>When a same-gender pair plays, the two teams\' total matches won may differ by at most this much.</span></div>' + stepper('maxWinGap', 0, 10) + '</div>' : '') +
+    '<div class="setting"><div class="txt"><b>Sit-out points</b><span>Given to players who sit out a round.</span></div>' + seg('sitOutPoints', [['zero','None'],['half','Half'],['avg','Average']]) + '</div>' +
+    '<div class="setting"><div class="txt"><b>Round 1</b><span>Later rounds always follow the standings.</span></div>' + seg('firstRound', [['random','Random'],['listed','List order']]) + '</div>' +
+    '</section>';
+
+  out += '<section class="panel"><h2>Event</h2><div class="field"><label for="evname">Event name</label><input class="input" id="evname" value="' + esc(t.name) + '" data-change="evname"></div>' +
+    '<div class="btns"><button class="btn primary" data-action="new-event">New event</button><button class="btn" data-action="backup">Back up</button><button class="btn" data-action="restore">Restore</button></div>' +
+    '<p class="small muted">Everything is saved on this phone. Use Back up to copy the event as text, and Restore to load it again.</p></section>';
+  return out;
+}
+
+/* ---------- Sheets ---------- */
+function openSheet(kind, data){ ui.sheet = kind; ui.data = data || {}; renderSheet(); }
+function closeSheet(){ ui.sheet = null; ui.data = null; renderSheet(); }
+function renderSheet(){
+  if(!ui.sheet){ sheetEl.hidden = true; sheetEl.innerHTML = ''; return; }
+  sheetEl.hidden = false;
+  var h = '';
+  if(ui.sheet === 'score') h = sheetScore();
+  else if(ui.sheet === 'confirm') h = '<h2>' + esc(ui.data.title) + '</h2><p>' + esc(ui.data.text) + '</p><div class="btns"><button class="btn" data-action="close-sheet">Cancel</button><button class="btn ' + (ui.data.danger ? 'danger' : 'primary') + '" data-action="confirm-ok">' + esc(ui.data.ok) + '</button></div>';
+  else if(ui.sheet === 'new') h = '<h2>New event</h2><div class="field"><label for="ne-name">Event name</label><input class="input" id="ne-name" value="' + esc(ui.data.name || '') + '" placeholder="Friday Mexicano"></div>' +
+    (T() && T().players.length ? '<label class="setting"><span class="txt"><b>Keep the current players</b><span>Scores and rounds start from zero.</span></span><input type="checkbox" id="ne-keep" checked style="width:22px;height:22px"></label>' : '') +
+    '<div class="btns"><button class="btn" data-action="close-sheet">Cancel</button><button class="btn primary" data-action="new-ok">Create event</button></div>';
+  else if(ui.sheet === 'paste') h = '<h2>Paste names</h2><p class="small muted">One player per line. End a line with M or W to set gender, for example "Sari W". Lines without a letter use the gender picked below.</p>' +
+    '<textarea class="input" id="paste-txt" placeholder="Andi M&#10;Sari W&#10;Budi M"></textarea><div class="setting"><span class="txt"><b>Default gender</b></span><div class="seg"><button data-action="paste-g" data-value="M" aria-pressed="' + (ui.data.g !== 'F') + '">Man</button><button data-action="paste-g" data-value="F" aria-pressed="' + (ui.data.g === 'F') + '">Woman</button></div></div>' +
+    '<div class="btns"><button class="btn" data-action="close-sheet">Cancel</button><button class="btn primary" data-action="paste-ok">Add players</button></div>';
+  else if(ui.sheet === 'backup') h = '<h2>Back up</h2><p class="small muted">Copy this text and keep it somewhere safe, for example in a chat to yourself.</p><textarea class="input" id="bk-txt" readonly>' + esc(JSON.stringify(S.t)) + '</textarea><div class="btns"><button class="btn" data-action="close-sheet">Close</button><button class="btn primary" data-action="copy-backup">Copy</button></div>';
+  else if(ui.sheet === 'restore') h = '<h2>Restore</h2><p class="small muted">Paste backup text. This replaces the current event.</p><textarea class="input" id="rs-txt"></textarea><p class="sheet-msg" id="rs-msg"></p><div class="btns"><button class="btn" data-action="close-sheet">Cancel</button><button class="btn primary" data-action="restore-ok">Restore</button></div>';
+  sheetEl.innerHTML = '<div class="backdrop" data-action="close-sheet"></div><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-inner">' + h + '</div></div>';
+}
+function findMatch(id){ var t = T(); for(var i = 0; i < t.rounds.length; i++){ var r = t.rounds[i]; for(var j = 0; j < r.matches.length; j++) if(r.matches[j].id === id) return {r:r, m:r.matches[j]}; } return null; }
+/* The other side's score fills in automatically when the total is fixed. */
+function autoFill(){ var s = T().settings; return s.scoreType === 'tennis' ? s.tennisFormat === 'total' : s.scoring === 'fixed'; }
+function overMsg(d){
+  var s = T().settings, sum = d.sa + d.sb, N = matchTarget(s);
+  return autoFill() && sum > N ? (isTennis() ? 'Games' : 'Scores') + ' add up to ' + sum + ', more than ' + N + '.' : '';
+}
+function incompleteMsg(d){
+  var s = T().settings, sum = d.sa + d.sb, N = matchTarget(s);
+  if(s.scoreType === 'tennis'){
+    if(s.tennisFormat === 'total') return sum !== N ? 'Games add up to ' + sum + ', not ' + N + '.' : '';
+    return tennisFinished(d.sa, d.sb, s) ? '' : 'Nobody has won the set yet (' + N + ' games with a 2-game lead, or ' + (N+1) + '–' + N + ' after a tiebreak).';
+  }
+  return s.scoring === 'fixed' && sum !== N ? 'Scores add up to ' + sum + ', not ' + N + '.' : '';
+}
+function progressText(d){
+  var s = T().settings, N = matchTarget(s);
+  if(s.scoreType !== 'tennis') return s.scoring === 'fixed' ? (d.sa + d.sb) + ' of ' + N + ' points' : 'Free scoring';
+  if(tennisFinished(d.sa, d.sb, s)) return 'Match finished. Save the score.';
+  var extra = tennisLabels(d, s)[2];
+  return (s.tennisFormat === 'total' ? 'Game ' + (d.sa + d.sb + 1) + ' of ' + N : 'Set to ' + N + ' · game ' + (d.sa + d.sb + 1)) + (extra ? ' · ' + extra : '');
+}
+function sheetScore(){
+  var t = T(), d = ui.data, f = findMatch(d.id); if(!f) return '';
+  var P = byId(), tennis = isTennis(), lab = tennis ? tennisLabels(d, t.settings) : null;
+  var names = function(ids){ return ids.map(function(id){ return esc(P[id].name); }).join('<br>'); };
+  var side = function(k, ids, i){
+    return '<button class="side" data-action="pt" data-side="' + k + '"><span class="nm">' + names(ids) + '</span><span class="big" id="big-' + k + '">' + d['s' + k] + '</span>' +
+      (tennis ? '<span class="tpt" id="pt-' + k + '">' + lab[i] + '</span><span class="hint">Tap to win the point</span>' : '<span class="hint">Tap +1</span>') + '</button>';
+  };
+  var controls = tennis
+    ? '<div class="minus tennis"><button class="btn" data-action="undo"' + (d.hist.length ? '' : ' disabled') + '>Undo</button><div class="progress" id="prog">' + progressText(d) + '</div></div>'
+    : '<div class="minus"><button class="btn" data-action="minus" data-side="a">−1</button><div class="progress" id="prog">' + progressText(d) + '</div><button class="btn" data-action="minus" data-side="b">−1</button></div>';
+  return '<div class="row-between"><h2>Court ' + f.m.court + ' · Round ' + f.r.number + '</h2><button class="btn sm" data-action="close-sheet">Close</button></div>' +
+    (tennis ? '<div class="lbl center">Games</div>' : '') +
+    '<div class="pad">' + side('a', f.m.a, 0) + side('b', f.m.b, 1) + '</div>' + controls +
+    '<div class="field"><span class="lbl">Or type the final ' + (tennis ? 'games' : 'score') + (autoFill() ? ' (the other side fills in)' : '') + '</span><div class="direct"><input class="input" id="dir-a" type="number" inputmode="numeric" min="0" value="' + d.sa + '" data-input="dir" data-side="a" aria-label="Left team"><span>–</span><input class="input" id="dir-b" type="number" inputmode="numeric" min="0" value="' + d.sb + '" data-input="dir" data-side="b" aria-label="Right team"></div></div>' +
+    '<p class="sheet-msg" id="score-msg">' + overMsg(d) + '</p>' +
+    '<div class="btns"><button class="btn danger" data-action="clear-score">Clear score</button><button class="btn primary" data-action="save-score">Save score</button></div>';
+}
+/* Typing in the score boxes: update the rest of the sheet without re-rendering the focused input. */
+function updateScoreDisplay(skip){
+  var d = ui.data;
+  document.getElementById('big-a').textContent = d.sa; document.getElementById('big-b').textContent = d.sb;
+  if(skip !== 'a') document.getElementById('dir-a').value = d.sa;
+  if(skip !== 'b') document.getElementById('dir-b').value = d.sb;
+  if(isTennis()){ var lab = tennisLabels(d, T().settings); document.getElementById('pt-a').textContent = lab[0]; document.getElementById('pt-b').textContent = lab[1]; }
+  document.getElementById('prog').textContent = progressText(d);
+  document.getElementById('score-msg').textContent = overMsg(d);
+}
+/* Keep the in-progress score on the match so closing the sheet does not lose it. */
+function storeLive(){
+  var f = findMatch(ui.data.id); if(!f) return;
+  var d = ui.data; f.m.live = {sa:d.sa, sb:d.sb, pa:d.pa, pb:d.pb, tb:d.tb, hist:d.hist.slice(-200)}; save();
+}
+function snap(d){ return {sa:d.sa, sb:d.sb, pa:d.pa, pb:d.pb, tb:d.tb}; }
+
+/* ---------- Actions ---------- */
+function confirmThen(title, text, ok, fn, danger){ openSheet('confirm', {title:title, text:text, ok:ok, fn:fn, danger:danger}); }
+function doGenerate(){
+  var res = generateRound(T());
+  if(res.error){ toast(res.error); return false; }
+  T().rounds.push(res.round); ui.edit = false; ui.sel = null; save(); return true;
+}
+function swapPlayers(r, x, y){
+  var loc = function(id){
+    for(var i = 0; i < r.matches.length; i++){ var m = r.matches[i]; var k = m.a.indexOf(id); if(k >= 0) return [m.a, k]; k = m.b.indexOf(id); if(k >= 0) return [m.b, k]; }
+    var b = r.bench.indexOf(id); return b >= 0 ? [r.bench, b] : null;
+  };
+  var lx = loc(x), ly = loc(y); if(!lx || !ly) return;
+  lx[0][lx[1]] = y; ly[0][ly[1]] = x;
+}
+function copyText(text, okMsg){
+  var done = function(){ toast(okMsg); };
+  var fallback = function(){ var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); done(); }catch(e){ toast('Copy failed. Select the text and copy it by hand.'); } ta.remove(); };
+  try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback(); }catch(e){ fallback(); }
+}
+function addPlayer(name, g){
+  name = (name || '').trim(); if(!name) return false;
+  T().players.push({id:uid(), name:name, gender:g, active:true}); return true;
+}
+
+var actions = {
+  tab: function(el){ ui.tab = el.dataset.tab; ui.edit = false; ui.sel = null; render(); window.scrollTo(0, 0); },
+  'dismiss-example': function(){ S.example = false; save(); render(); },
+  generate: function(){ if(doGenerate()) render(); },
+  'edit-on': function(){ ui.edit = true; ui.sel = null; render(); },
+  'edit-off': function(){ ui.edit = false; ui.sel = null; save(); render(); },
+  pick: function(el){
+    var id = el.dataset.id, r = openRound(); if(!r) return;
+    if(!ui.sel){ ui.sel = id; }
+    else if(ui.sel === id){ ui.sel = null; }
+    else { swapPlayers(r, ui.sel, id); ui.sel = null; save(); toast('Players swapped'); }
+    render();
+  },
+  score: function(el){
+    var f = findMatch(el.dataset.m); if(!f) return;
+    var lv = f.m.live;
+    var d = scored(f.m) ? {sa:f.m.sa, sb:f.m.sb, pa:0, pb:0, tb:false, hist:[]}
+      : lv ? {sa:lv.sa||0, sb:lv.sb||0, pa:lv.pa||0, pb:lv.pb||0, tb:!!lv.tb, hist:(lv.hist||[]).slice()}
+      : {sa:0, sb:0, pa:0, pb:0, tb:false, hist:[]};
+    d.id = f.m.id;
+    openSheet('score', d);
+  },
+  pt: function(el){
+    var d = ui.data, s = T().settings, side = el.dataset.side, N = matchTarget(s), before = snap(d);
+    if(s.scoreType === 'tennis'){
+      if(!tennisPoint(d, side, s)){ toast('Match finished. Save the score.'); return; }
+    } else {
+      if(s.scoring === 'fixed' && d.sa + d.sb >= N){ toast('All ' + N + ' points played. Save the score.'); return; }
+      d['s' + side]++;
+    }
+    d.hist.push(before); d.warned = false; d.typing = false; storeLive(); renderSheet();
+    if(navigator.vibrate) try{ navigator.vibrate(15); }catch(e){}
+  },
+  minus: function(el){ var d = ui.data, k = 's' + el.dataset.side; if(d[k] > 0){ d.hist.push(snap(d)); d[k]--; d.warned = false; d.typing = false; storeLive(); renderSheet(); } },
+  undo: function(){ var d = ui.data, p = d.hist.pop(); if(!p) return; d.sa = p.sa; d.sb = p.sb; d.pa = p.pa; d.pb = p.pb; d.tb = p.tb; d.warned = false; d.typing = false; storeLive(); renderSheet(); },
+  'save-score': function(){
+    var f = findMatch(ui.data.id); if(!f) return closeSheet();
+    var msg = incompleteMsg(ui.data);
+    if(msg && !ui.data.warned){
+      ui.data.warned = true;
+      document.getElementById('score-msg').textContent = msg + ' Tap Save score again to keep it anyway.';
+      return;
+    }
+    f.m.sa = ui.data.sa; f.m.sb = ui.data.sb; delete f.m.live; save(); closeSheet(); render(); toast('Score saved');
+  },
+  'clear-score': function(){ var f = findMatch(ui.data.id); if(f){ f.m.sa = null; f.m.sb = null; delete f.m.live; save(); } closeSheet(); render(); },
+  finish: function(){
+    var r = openRound(); if(!r || !r.matches.every(scored)) return;
+    r.done = true; save();
+    if(doGenerate()) toast('Round ' + r.number + ' saved. Round ' + (r.number+1) + ' is ready.');
+    render(); window.scrollTo(0, 0);
+  },
+  'end-round': function(){ var r = openRound(); if(!r || !r.matches.every(scored)) return; r.done = true; save(); ui.tab = 'standings'; render(); },
+  reshuffle: function(){
+    var r = openRound(); if(!r) return;
+    confirmThen('Re-draw round ' + r.number + '?', 'The pairs are generated again from the current standings and player list.' + (r.matches.some(scored) ? ' Scores entered for this round are removed.' : ''), 'Re-draw', function(){
+      T().rounds.pop(); doGenerate(); render();
+    });
+  },
+  'delete-round': function(){
+    var r = openRound(); if(!r) return;
+    confirmThen('Delete round ' + r.number + '?', 'The round and any scores in it are removed. You can create it again from the Round tab.', 'Delete round', function(){ T().rounds.pop(); ui.edit = false; save(); render(); }, true);
+  },
+  'copy-standings': function(){
+    var t = T(), P = byId(), rows = standingsRows(), done = t.rounds.filter(function(r){ return r.done; }).length;
+    var txt = t.name + ' · standings after round ' + done + '\n' + rows.map(function(s){ return s.rank + '. ' + P[s.id].name + ' – ' + fmt(s.points) + ' pts (' + s.wins + 'W ' + s.draws + 'D ' + s.losses + 'L)'; }).join('\n');
+    copyText(txt, 'Standings copied');
+  },
+  gender: function(el){ var p = byId()[el.dataset.id]; p.gender = p.gender === 'M' ? 'F' : 'M'; save(); render(); },
+  'toggle-active': function(el){ var p = byId()[el.dataset.id]; p.active = !p.active; save(); render(); },
+  remove: function(el){ var t = T(); t.players = t.players.filter(function(p){ return p.id !== el.dataset.id; }); save(); render(); },
+  add: function(el){
+    var inp = document.getElementById('newname');
+    if(addPlayer(inp.value, el.dataset.g)){ save(); render(); var n = document.getElementById('newname'); if(n) n.focus(); }
+    else { toast('Type a name first'); inp.focus(); }
+  },
+  'paste-list': function(){ openSheet('paste', {g:'M'}); },
+  'paste-g': function(el){ var txt = document.getElementById('paste-txt').value; ui.data.g = el.dataset.value; renderSheet(); document.getElementById('paste-txt').value = txt; },
+  'paste-ok': function(){
+    var lines = document.getElementById('paste-txt').value.split(/\r?\n/), n = 0;
+    lines.forEach(function(line){
+      line = line.replace(/^\s*\d+[.)]\s*/, '').trim(); if(!line) return;
+      var g = ui.data.g || 'M', mm = line.match(/^(.*?)[\s,;:(\-]+(m|w|f|l|p)\)?$/i);
+      if(mm){ line = mm[1].trim(); var c = mm[2].toUpperCase(); g = c === 'M' || c === 'L' ? 'M' : 'F'; }
+      if(addPlayer(line, g)) n++;
+    });
+    save(); closeSheet(); render(); toast(n + ' player' + (n === 1 ? '' : 's') + ' added');
+  },
+  set: function(el){ var s = T().settings, k = el.dataset.setting; s[k] = el.dataset.value; save(); render(); },
+  step: function(el){
+    var s = T().settings, k = el.dataset.setting, v = (+s[k] || 0) + (+el.dataset.d);
+    v = Math.max(+el.dataset.min, Math.min(+el.dataset.max, v)); s[k] = v; save(); render();
+  },
+  'new-event': function(){ openSheet('new', {name:''}); },
+  'new-ok': function(){
+    var name = document.getElementById('ne-name').value.trim() || 'Mexicano', keep = document.getElementById('ne-keep');
+    var old = T(), players = keep && keep.checked && old ? old.players.map(function(p){ return [p.name, p.gender]; }) : [];
+    S.t = makeTournament(name, players, old ? old.settings : null); S.example = false;
+    save(); closeSheet(); ui.tab = 'setup'; render(); toast('Event created');
+  },
+  backup: function(){ openSheet('backup'); },
+  'copy-backup': function(){ copyText(JSON.stringify(S.t), 'Backup copied'); },
+  restore: function(){ openSheet('restore'); },
+  'restore-ok': function(){
+    try{
+      var d = JSON.parse(document.getElementById('rs-txt').value);
+      if(!d || !Array.isArray(d.players) || !Array.isArray(d.rounds)) throw 0;
+      d.settings = Object.assign({}, DEFAULTS, d.settings || {});
+      S.t = d; S.example = false; save(); closeSheet(); ui.tab = 'standings'; render(); toast('Event restored');
+    }catch(e){ document.getElementById('rs-msg').textContent = 'That text is not a backup from this app. Copy the whole backup and try again.'; }
+  },
+  'close-sheet': function(){ closeSheet(); },
+  'confirm-ok': function(){ var fn = ui.data.fn; closeSheet(); if(fn) fn(); }
+};
+
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-action]'); if(!el || el.disabled) return;
+  var fn = actions[el.dataset.action]; if(fn){ e.preventDefault(); fn(el); }
+});
+document.addEventListener('change', function(e){
+  var el = e.target, k = el.dataset && el.dataset.change; if(!k) return;
+  if(k === 'rename'){ var p = byId()[el.dataset.id], v = el.value.trim(); if(v){ p.name = v; save(); } else el.value = p.name; }
+  if(k === 'evname'){ var v2 = el.value.trim(); if(v2){ T().name = v2; save(); render(); } }
+});
+document.addEventListener('input', function(e){
+  var el = e.target; if(!el.dataset || el.dataset.input !== 'dir' || ui.sheet !== 'score') return;
+  var d = ui.data, side = el.dataset.side, other = side === 'a' ? 'b' : 'a', N = matchTarget(T().settings);
+  var v = parseInt(el.value, 10); if(!isFinite(v) || v < 0) v = 0;
+  if(!d.typing){ d.hist.push(snap(d)); d.typing = true; }
+  d['s' + side] = v; d.pa = 0; d.pb = 0; d.tb = false; d.warned = false;
+  if(autoFill() && v <= N) d['s' + other] = N - v;
+  updateScoreDisplay(side); storeLive();
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && e.target.id === 'newname'){ e.preventDefault(); actions.add({dataset:{g:'M'}}); }
+  if(e.key === 'Escape' && ui.sheet) closeSheet();
+});
+/* Android back button (called from the app wrapper): close sheets and leave edit mode before exiting. */
+window.__onBack = function(){
+  if(ui.sheet){ closeSheet(); return true; }
+  if(ui.edit){ ui.edit = false; ui.sel = null; render(); return true; }
+  if(ui.tab !== 'round'){ ui.tab = 'round'; render(); return true; }
+  return false;
+};
+/* Keep the screen on while scoring. */
+var lock = null;
+function wake(){ try{ if(navigator.wakeLock && document.visibilityState === 'visible' && !lock) navigator.wakeLock.request('screen').then(function(l){ lock = l; l.addEventListener('release', function(){ lock = null; }); }, function(){}); }catch(e){} }
+document.addEventListener('visibilitychange', wake);
+
+S = load();
+if(S && S.t) S.t.settings = Object.assign({}, DEFAULTS, S.t.settings);
+if(!S){
+  S = {t:makeTournament('Example night', EXAMPLE, {courts:3}), example:true};
+  var g = generateRound(S.t); if(g.round) S.t.rounds.push(g.round);
+  save();
+}
+if(S.t && !S.t.rounds.length) ui.tab = 'setup';
+render(); wake();
+})();
+</script>
