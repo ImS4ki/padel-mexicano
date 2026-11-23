@@ -1,6 +1,4 @@
-// Builds the app from app.html into:
-//   android/app/src/main/assets/index.html  (Android app wrapper)
-//   web/                                    (installable offline web app: upload this folder to any static host)
+// Builds the app from app.html into web/ (installable offline web app: upload this folder to any static host)
 const fs = require('fs'), path = require('path'), zlib = require('zlib'), crypto = require('crypto');
 const root = __dirname;
 const src = fs.readFileSync(path.join(root, 'app.html'), 'utf8');
@@ -18,9 +16,6 @@ function write(rel, data) {
   fs.writeFileSync(out, data);
   console.log('Wrote ' + rel + ' (' + data.length + ' bytes)');
 }
-
-// Android
-write('android/app/src/main/assets/index.html', page('', ''));
 
 // Web app
 const html = page(
