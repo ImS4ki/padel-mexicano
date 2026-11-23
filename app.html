@@ -191,7 +191,6 @@ textarea.input{min-height:120px;font-family:ui-monospace,Consolas,monospace;font
 .sheet-msg{min-height:1.2em;font-size:.88rem;color:var(--warn);margin:0}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.9rem;max-width:calc(100% - 32px)}
-.example{display:flex;gap:10px;align-items:flex-start}
 @media (prefers-reduced-motion: no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
 </style>
 
@@ -389,7 +388,6 @@ function matchCheck(t, st, m){
 (function(){
 'use strict';
 var KEY = 'padel-mexicano-v1';
-var EXAMPLE = [['Andi','M'],['Budi','M'],['Dimas','M'],['Rafael','M'],['Kevin','M'],['Arif','M'],['Yoga','M'],['Sari','F'],['Maya','F'],['Dewi','F'],['Nadia','F'],['Putri','F']];
 var S = null;
 var ui = {tab:'round', edit:false, sel:null, sheet:null, score:null, confirm:null};
 var view = document.getElementById('view'), sheetEl = document.getElementById('sheet');
@@ -436,11 +434,8 @@ function viewEmpty(){
   return '<section class="panel center"><h2>No event yet</h2><p class="muted">Create an event, add players with their gender, and the app builds Mexicano rounds for you.</p>' +
     '<button class="btn primary" data-action="new-event">New event</button></section>';
 }
-function exampleNote(){
-  return S.example ? '<div class="notice info example"><div style="flex:1">This is an example event with made-up players. Start your own from Setup &rsaquo; New event.</div><button class="btn sm" data-action="dismiss-example">OK</button></div>' : '';
-}
 function viewRound(){
-  var t = T(), r = openRound(), out = exampleNote();
+  var t = T(), r = openRound(), out = '';
   if(!r){
     var n = t.rounds.length ? t.rounds[t.rounds.length-1].number + 1 : 1;
     var act = t.players.filter(function(p){ return p.active; }).length;
@@ -505,7 +500,7 @@ function viewStandings(){
       '<td class="pts">' + fmt(s.points) + '</td><td>' + s.wins + '-' + s.draws + '-' + s.losses + '</td><td>' + (s.pf - s.pa > 0 ? '+' : '') + (s.pf - s.pa) + '</td><td>' + s.sitOuts + '</td></tr>';
   });
   out += '</tbody></table></div><p class="small muted">Out = rounds sat out. ' + (isTennis() ? 'Games' : 'Pts') + ' includes sit-out ' + unit() + ' (' + sitOutLabel(t) + ').</p></section>';
-  return exampleNote() + out;
+  return out;
 }
 function viewHistory(){
   var t = T(), P = byId();
@@ -535,7 +530,7 @@ function viewSetup(){
   var used = {}; t.rounds.forEach(function(r){ r.matches.forEach(function(m){ m.a.concat(m.b).forEach(function(id){ used[id] = 1; }); }); r.bench.forEach(function(id){ used[id] = 1; }); });
   var act = t.players.filter(function(p){ return p.active; });
   var men = act.filter(function(p){ return p.gender === 'M'; }).length, women = act.length - men;
-  var out = exampleNote();
+  var out = '';
   out += '<section class="panel"><h2>Players</h2><div class="counts"><span>' + act.length + ' playing</span><span>' + men + ' men</span><span>' + women + ' women</span>' +
     (t.players.length > act.length ? '<span>' + (t.players.length - act.length) + ' out</span>' : '') + '</div><div class="plist">';
   t.players.forEach(function(p){
@@ -677,7 +672,6 @@ function addPlayer(name, g){
 
 var actions = {
   tab: function(el){ ui.tab = el.dataset.tab; ui.edit = false; ui.sel = null; render(); window.scrollTo(0, 0); },
-  'dismiss-example': function(){ S.example = false; save(); render(); },
   generate: function(){ if(doGenerate()) render(); },
   'edit-on': function(){ ui.edit = true; ui.sel = null; render(); },
   'edit-off': function(){ ui.edit = false; ui.sel = null; save(); render(); },
@@ -772,7 +766,7 @@ var actions = {
   'new-ok': function(){
     var name = document.getElementById('ne-name').value.trim() || 'Mexicano', keep = document.getElementById('ne-keep');
     var old = T(), players = keep && keep.checked && old ? old.players.map(function(p){ return [p.name, p.gender]; }) : [];
-    S.t = makeTournament(name, players, old ? old.settings : null); S.example = false;
+    S.t = makeTournament(name, players, old ? old.settings : null);
     save(); closeSheet(); ui.tab = 'setup'; render(); toast('Event created');
   },
   backup: function(){ openSheet('backup'); },
@@ -783,7 +777,7 @@ var actions = {
       var d = JSON.parse(document.getElementById('rs-txt').value);
       if(!d || !Array.isArray(d.players) || !Array.isArray(d.rounds)) throw 0;
       d.settings = Object.assign({}, DEFAULTS, d.settings || {});
-      S.t = d; S.example = false; save(); closeSheet(); ui.tab = 'standings'; render(); toast('Event restored');
+      S.t = d; save(); closeSheet(); ui.tab = 'standings'; render(); toast('Event restored');
     }catch(e){ document.getElementById('rs-msg').textContent = 'That text is not a backup from this app. Copy the whole backup and try again.'; }
   },
   'close-sheet': function(){ closeSheet(); },
@@ -826,11 +820,8 @@ document.addEventListener('visibilitychange', wake);
 
 S = load();
 if(S && S.t) S.t.settings = Object.assign({}, DEFAULTS, S.t.settings);
-if(!S){
-  S = {t:makeTournament('Example night', EXAMPLE, {courts:3}), example:true};
-  var g = generateRound(S.t); if(g.round) S.t.rounds.push(g.round);
-  save();
-}
+/* Older versions started with a made-up example event; drop it. */
+if(!S || S.example){ S = {t:null}; save(); }
 if(S.t && !S.t.rounds.length) ui.tab = 'setup';
 render(); wake();
 })();
